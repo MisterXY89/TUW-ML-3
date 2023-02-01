@@ -14,10 +14,13 @@ from keras.utils import to_categorical
 
 class Process(object):
 
-    def __init__(self, data_loader):
+    def __init__(self, data_loader, test_size = 0.2, sample_factor = 0.8):
         self.tokenizer = Tokenizer()
         self.data_loader = data_loader
         self.file_path = pathlib.Path(__file__).parent.resolve()
+
+        self.test_size = test_size
+        self.sample_factor = sample_factor
 
     def _filter_links(self, df):
         url_regex = r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
@@ -36,7 +39,8 @@ class Process(object):
         self.vocab_size = len(self.tokenizer.word_index) + 1
         return token_sequences
         
-    def _cut_sequences(self, token_list, sequence_length=2):
+    def _cut_sequences(self, token_list):
+        # self.sequence_length currently not used!!
         sequences = []
 
         for i in range(1, len(token_list)):
@@ -61,6 +65,30 @@ class Process(object):
         y = to_categorical(y, num_classes=self.vocab_size)
         return X, y
 
+    def _process(self, data):
+        # remove all tweets with links
+        data = self._filter_links(data)
+        # remove all punctuation
+        data["text"] = data.text.apply(lambda x: " " if x in string.punctuation else x)
+        # remove all numbers and special signs like %, § ...
+        data["text"] = data.text.apply(lambda x: " ".join([w for w in x.split() if w.isalpha()]))
+        # lower all and remove trainling/leading whitespaces
+        data["text"] = data.text.apply(lambda x: x.lower().strip())        
+
+        tokens = self._tokenize(data)
+        sequences = self._cut_sequences(tokens)
+
+        X, y = self._get_Xy(sequences)        
+
+        return X, y
+
+    def _test_train_split(self, data):
+        data = data.sample(frac = self.sample_factor)
+
+        test = data.sample(frac = self.test_size)
+        train = data[~data.index.isin(test.index)]
+
+        return train, test 
 
     def process(self, store=True, force=False, sequence_length=2):
         self.sequence_length = sequence_length
@@ -74,26 +102,22 @@ class Process(object):
                 print("Data loading complete")
                 return data
         
-        # remove all tweets with links
-        data = self._filter_links(data)
-        # remove all punctuation
-        data["text"] = data.text.apply(lambda x: " " if x in string.punctuation else x)
-        # remove all numbers and special signs like %, § ...
-        data["text"] = data.text.apply(lambda x: " ".join([w for w in x.split() if w.isalpha()]))
-        # lower all and remove trainling/leading whitespaces
-        data["text"] = data.text.apply(lambda x: x.lower().strip())
-
-        tokens = self._tokenize(data)
-        sequences = self._cut_sequences(tokens, sequence_length = sequence_length)
-
-        X, y = self._get_Xy(sequences)        
-
-        data = {
-            "X": X,
-            "y": y
-        }
+        train, test = self._test_train_split(data)
+        X_test, y_test = self._process(test)
+        X_train, y_train = self._process(train)
 
         # if store: 
         #     self.data_loader.store_processed_data(data)
 
-        return data
+        return X_train, X_test, y_train, y_test
+        
+        # {
+        #     "train": {
+        #         "X": X_train,
+        #         "y": y_train
+        #     },
+        #     "test": {
+        #         "X": X_test,
+        #         "y": y_test
+        #     }
+        # }
