@@ -7,8 +7,10 @@ import pandas as pd
 
 class DataLoader():
 
-    def __init__(self) -> None:
+    def __init__(self, external=False) -> None:
         self.file_path = pathlib.Path(__file__).parent.resolve()
+        if external: 
+            self.file_path = "https://github.com/MisterXY89/TUW-ML-3/blob/main/src"
         self.DATA_DIR = f"{self.file_path}/data"
 
         self.max_data_load_tries = 3
