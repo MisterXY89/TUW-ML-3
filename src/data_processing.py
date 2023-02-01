@@ -64,11 +64,12 @@ class Process(object):
 
     def process(self, store=True, force=False, sequence_length=2):
         self.sequence_length = sequence_length
-        data, is_raw = self.data_loader.load_data(force=force)
+        data, is_raw = self.data_loader.load_data(force=force)        
         
         if not force:
-            if is_raw: 
+            if is_raw:                 
                 print("No preprocessed file to load - <force> will be ignored.")
+                data = data.sample(5000)
             else:
                 print("Data loading complete")
                 return data
