@@ -22,7 +22,7 @@ class Evaluator(object):
 
     def evaluate_lemma(self, w_true, w_pred):
         pairs = self._parse_word_input(w_true, w_pred)
-        print(pairs)
+        print(pairs[0])
         print(pairs[0].true)
         
 

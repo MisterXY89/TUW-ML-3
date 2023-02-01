@@ -5,6 +5,8 @@ import numpy as np
 
 from keras.preprocessing.text import Tokenizer
 
+import tensorflow as tf
+
 from keras.utils import to_categorical
 from keras.models import Sequential
 from keras.layers import (
@@ -19,7 +21,7 @@ class NextWordModel(object):
     expects X to be the sentence and y to be missing (correct) next word
     """
 
-    def __init__(self, sequence_length, vocab_size, dimensions_to_represent_word=100):
+    def __init__(self, sequence_length, vocab_size, dimensions_to_represent_word=100, load_existing = True):
         self.vocab_size = vocab_size
         self.sequence_length = sequence_length
 
@@ -27,6 +29,13 @@ class NextWordModel(object):
         self.model_path = f"{pathlib.Path(__file__).parent.resolve()}/_objects/lstm.nextword.model"
 
         self.model = self.get_model()
+
+        if load_existing == True:
+            try:
+                self._load_model()
+                print("Loading existing model successful!")
+            except Exception as e:
+                print("Loading existing model failed:\n" + str(e))
 
     def train(self, X_train, y_train, epochs = 100, batch_size = 128, save = True):
         
