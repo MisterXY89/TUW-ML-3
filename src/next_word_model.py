@@ -14,6 +14,8 @@ from keras.layers import (
     Dense,
     LSTM
 )
+
+# from .data_processing import Process
  
 
 class NextWordModel(object):
@@ -21,21 +23,23 @@ class NextWordModel(object):
     expects X to be the sentence and y to be missing (correct) next word
     """
 
-    def __init__(self, sequence_length, vocab_size, dimensions_to_represent_word=100, load_existing = True):
-        self.vocab_size = vocab_size
-        self.sequence_length = sequence_length
+    def __init__(self, dimensions_to_represent_word=100, load_existing = False, processor = None):
+        self.processor = processor
+        self.sequence_length = self.processor.sequence_length,
+        self.vocab_size = self.processor.vocab_size,        
 
         self.dimensions_to_represent_word = dimensions_to_represent_word
         self.model_path = f"{pathlib.Path(__file__).parent.resolve()}/_objects/lstm.nextword.model"
-
-        self.model = self.get_model()
 
         if load_existing == True:
             try:
                 self._load_model()
                 print("Loading existing model successful!")
             except Exception as e:
-                print("Loading existing model failed:\n" + str(e))
+                print("Loading existing model failed:\n" + str(e))                
+                self.model = self.get_model()
+        else:
+            self.model = self.get_model()
 
     def train(self, X_train, y_train, epochs = 100, batch_size = 128, save = True):
         
@@ -51,17 +55,21 @@ class NextWordModel(object):
 
 
     def _load_model(self):
-        self.model = tf.load(self.model_path)
+        self.model = tf.keras.models.load_model(self.model_path)
 
     def get_model(self, verbose=True):
         model = Sequential()
-        model.add(Embedding(
-            self.vocab_size, 
-            # self.sequence_length, 
-            10,
-            # input_length = self.sequence_length
-            input_length = 1
-            ))
+        print(self.vocab_size)
+        model.add(
+            Embedding(
+                self.vocab_size[0], 
+                # self.sequence_length, 
+                10,
+                # input_length = self.sequence_length
+                input_length = 1
+            )
+        )
+
         # unit =  memory cell
         # More memory cells and a deeper network may achieve better results.
 
@@ -69,7 +77,7 @@ class NextWordModel(object):
         model.add(LSTM(100, return_sequences = True))
         model.add(LSTM(100))
         model.add(Dense(100, activation= 'relu'))
-        model.add(Dense(self.vocab_size, activation = 'softmax'))
+        model.add(Dense(self.vocab_size[0], activation = 'softmax'))
 
         if verbose: 
             print(model.summary())
@@ -82,5 +90,26 @@ class NextWordModel(object):
         
         return model
 
-    def predict(self, input):
-        pass
+    def predict(self, inp):
+        if isinstance(inp, str):
+            text = inp.split(" ")
+            text = text[-1]
+            text = ''.join(text)
+            
+            sequence = self.processor.tokenizer.texts_to_sequences(text)[0]
+            sequence = np.array(sequence)
+        
+        preds = self.model.predict(sequence)
+        preds = np.argmax(preds, axis=1)
+        predicted_word = ""
+
+        predicted_word = [key for key, value in self.processor.tokenizer.word_index.items() if value == preds][0]
+    
+        # for key, value in self.processor.tokenizer.word_index.items():
+        #     # print(preds)
+        #     if value == preds:
+        #         predicted_word = key
+        #         break
+        
+        print(predicted_word)
+        return predicted_word

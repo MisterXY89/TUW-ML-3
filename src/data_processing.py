@@ -29,8 +29,11 @@ class Process(object):
         df = df.reset_index(drop=True)
         return df
 
-    def _tokenize(self, df):
-        text_data = " ".join(list(df.text))
+    def tokenize(self, df):
+        if isinstance(df, pd.DataFrame):
+            text_data = " ".join(list(df.text))
+        else:
+            text_data = df
         self.tokenizer.fit_on_texts([text_data])
         with open(f"{self.file_path}/_objects/tokenizer.pkl", "wb") as fi:
             pickle.dump(self.tokenizer, fi)
@@ -75,7 +78,7 @@ class Process(object):
         # lower all and remove trainling/leading whitespaces
         data["text"] = data.text.apply(lambda x: x.lower().strip())        
 
-        tokens = self._tokenize(data)
+        tokens = self.tokenize(data)
         sequences = self._cut_sequences(tokens)
 
         X, y = self._get_Xy(sequences)        
