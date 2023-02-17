@@ -86,14 +86,15 @@ class Process(object):
         return X, y
 
     def _test_train_split(self, data):
-        data = data.sample(frac = self.sample_factor)
+        data = data.sample(frac = self.sample_factor, random_state = self.random_state)
 
-        test = data.sample(frac = self.test_size)
+        test = data.sample(frac = self.test_size, random_state = self.random_state)
         train = data[~data.index.isin(test.index)]
 
         return train, test 
 
-    def process(self, store=True, force=False, sequence_length=2):
+    def process(self, store=True, force=False, sequence_length=2, random_state=1180):
+        self.random_state = random_state
         self.sequence_length = sequence_length
         data, is_raw = self.data_loader.load_data(force=force)        
         

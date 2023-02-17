@@ -99,7 +99,7 @@ class NextWordModel(object):
             sequence = self.processor.tokenizer.texts_to_sequences(text)[0]
             sequence = np.array(sequence)
         
-        preds = self.model.predict(sequence)
+        preds = self.model.predict(sequence, verbose = 0)
         preds = np.argmax(preds, axis=1)
         predicted_word = ""
 
@@ -111,5 +111,5 @@ class NextWordModel(object):
         #         predicted_word = key
         #         break
         
-        print(predicted_word)
+        # print(predicted_word)
         return predicted_word
