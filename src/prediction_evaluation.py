@@ -4,6 +4,10 @@ from collections import namedtuple
 import nltk
 from nltk.stem import WordNetLemmatizer
 
+from sentence_transformers import SentenceTransformer, util
+
+import tensorflow as tf
+
 nltk.download('wordnet')
 
 class Evaluator(object):
@@ -14,6 +18,7 @@ class Evaluator(object):
         self.model = model
         self.lemmatizer = WordNetLemmatizer()
         self.pred = None
+        self.sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
 
     def _extract_tokens(self, x):
         # return [*map(lambda y: np.argwhere(y == np.amax(y)).flatten().tolist(), x)]
@@ -57,18 +62,22 @@ class Evaluator(object):
                 errors += 1
         
         print("ERRORS: ", errors)
+        self.errors = errors
+        # self.errors = 0
         return preds
 
-    def _acc(self, pred_eval):
-        return (sum(pred_eval)/len(pred_eval)) * 100
 
+    def _acc(self, pred_eval, report = True):
+        acc = round((sum(pred_eval)/(len(pred_eval))), 4) * 100
+        if report:          
+            print(f"Accuracy: {acc}%")
+        return acc
+        
 
-    def evaluate(self, X_test, y_test, eval_type = "id", force = False, threshold = 0.1):
+    def evaluate(self, X_test, y_test, eval_type = "id", force = False, threshold = 0.7):
         eval_types = ["id", "lemma", "embedding"]
 
-        if not eval_type in eval_types:
-            print(f"available evaluation types include: {eval_types}")
-            return 0
+        assert eval_type in eval_types, f"available evaluation types include: {eval_types}"            
 
         if (not force and not self.pred) or force or not self.pred:
             self.pred = w_pred = self._get_preds(X_test)            
@@ -78,22 +87,47 @@ class Evaluator(object):
         pairs = self._parse_word_input(y_test, w_pred)
 
         if eval_type == "id":
-            self.evaluate_identical(pairs)
+            return self.evaluate_identical(pairs)
         if eval_type == "lemma":
-            self.evaluate_lemma(pairs)
+            return self.evaluate_lemma(pairs)
         if eval_type == "embedding":
-            self.evaluate_embedding(pairs, threshold=threshold)
+            return self.evaluate_embedding(X_test, pairs, threshold=threshold)
         
 
     def evaluate_identical(self, pairs):
         pred_eval = [1 if pair.true == pair.pred else 0 for pair in pairs]
-        print("Accuracy ID: ", self._acc(pred_eval))
+        return self._acc(pred_eval, report=True)
 
-    def evaluate_lemma(self, pairs):        
+    def evaluate_lemma(self, pairs):
+        """
+        see https://www.geeksforgeeks.org/python-lemmatization-with-nltk/amp/
+        """        
         lemma_compare = lambda x: self.lemmatizer.lemmatize(x.true) == self.lemmatizer.lemmatize(x.pred)
         pred_eval = [1 if lemma_compare(pair) else 0 for pair in pairs]
-        print("Accuracy Lemma: ", self._acc(pred_eval))
+        return self._acc(pred_eval, report=True)
+
+    def __build_sentence(self, x_test_token, pair_value):
+        x_test_word = self._get_words([x_test_token])[0]
+        return f"{x_test_word} {pair_value}"
         
-    
-    def evaluate_embedding(self, pairs, threshold):
-        pass
+    def evaluate_embedding(self, X_test, pairs, threshold):        
+        """
+        see https://www.sbert.net/docs/usage/semantic_textual_similarity.html
+        and https://studymachinelearning.com/cosine-similarity-text-similarity-metric/
+        and https://www.learndatasci.com/glossary/cosine-similarity/
+        """
+        sentences_true = [self.__build_sentence(X_test[idx], pair.true) for idx, pair in enumerate(pairs)]
+        sentences_pred = [self.__build_sentence(X_test[idx], pair.pred) for idx, pair in enumerate(pairs)]
+
+        # print(sentences_true)
+        # print(sentences_pred)
+
+        embeddings_true = self.sbert_model.encode(sentences_true, convert_to_tensor=True)
+        embeddings_pred = self.sbert_model.encode(sentences_pred, convert_to_tensor=True)
+        
+        cosine_scores = util.cos_sim(embeddings_true, embeddings_pred)
+        pair_scores = tf.linalg.tensor_diag_part(cosine_scores)
+
+        pred_eval = [1 if score > threshold else 0 for score in pair_scores]
+
+        return self._acc(pred_eval, report=True), pair_scores

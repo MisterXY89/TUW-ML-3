@@ -11,11 +11,20 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 
 from keras.utils import to_categorical
 
+from sklearn.model_selection import train_test_split
+
 
 class Process(object):
 
     def __init__(self, data_loader, test_size = 0.2, sample_factor = 0.8):
-        self.tokenizer = Tokenizer()
+        try:
+            with open(f"{self.file_path}/_objects/tokenizer.pkl", "rb") as fi:
+                self.tokenizer = pickle.load(fi)
+            self.load_tokenizer = True
+        except Exception as e:            
+            self.tokenizer = Tokenizer()
+            self.load_tokenizer = False
+
         self.data_loader = data_loader
         self.file_path = pathlib.Path(__file__).parent.resolve()
 
@@ -30,13 +39,21 @@ class Process(object):
         return df
 
     def tokenize(self, df):
+        """
+        TODO: check  if tokenizer gets overwritten
+        """        
+
         if isinstance(df, pd.DataFrame):
             text_data = " ".join(list(df.text))
         else:
             text_data = df
+
+
         self.tokenizer.fit_on_texts([text_data])
-        with open(f"{self.file_path}/_objects/tokenizer.pkl", "wb") as fi:
-            pickle.dump(self.tokenizer, fi)
+
+        if not self.load_tokenizer:
+            with open(f"{self.file_path}/_objects/tokenizer.pkl", "wb") as fi:
+                pickle.dump(self.tokenizer, fi)
                 
         token_sequences = self.tokenizer.texts_to_sequences([text_data])[0]
         self.vocab_size = len(self.tokenizer.word_index) + 1
@@ -85,18 +102,28 @@ class Process(object):
 
         return X, y
 
-    def _test_train_split(self, data):
+    def _df_test_train_split(self, data):
         data = data.sample(frac = self.sample_factor, random_state = self.random_state)
 
         test = data.sample(frac = self.test_size, random_state = self.random_state)
         train = data[~data.index.isin(test.index)]
 
         return train, test 
+    
+    # def _test_train_split(self, X, y):
+    #     data = data.sample(frac = self.sample_factor, random_state = self.random_state)
+
+    #     test = data.sample(frac = self.test_size, random_state = self.random_state)
+    #     train = data[~data.index.isin(test.index)]
+
+    #     return train, test 
 
     def process(self, store=True, force=False, sequence_length=2, random_state=1180):
         self.random_state = random_state
         self.sequence_length = sequence_length
-        data, is_raw = self.data_loader.load_data(force=force)        
+        data, is_raw = self.data_loader.load_data(force=force)   
+
+        data = data.sample(frac = self.sample_factor, random_state = self.random_state)     
         
         if not force:
             if is_raw:                 
@@ -105,10 +132,15 @@ class Process(object):
             else:
                 print("Data loading complete")
                 return data
-        
-        train, test = self._test_train_split(data)
-        X_test, y_test = self._process(test)
-        X_train, y_train = self._process(train)
+                
+        # TODO: tokenize for all, then process for each!!!!
+        X, y = self._process(data)
+
+        # X_train, X_test, y_train, y_test = self._test_train_split(X, y)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, 
+            test_size = self.test_size, 
+            random_state = 1180
+        )
 
         # if store: 
         #     self.data_loader.store_processed_data(data)
