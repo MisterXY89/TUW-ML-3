@@ -68,7 +68,7 @@ class Evaluator(object):
 
 
     def _acc(self, pred_eval, report = True):
-        acc = round((sum(pred_eval)/(len(pred_eval))), 4) * 100
+        acc = round((sum(pred_eval)/(len(pred_eval))) * 100, 2)
         if report:          
             print(f"Accuracy: {acc}%")
         return acc
