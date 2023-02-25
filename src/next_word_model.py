@@ -23,27 +23,27 @@ class NextWordModel(object):
     expects X to be the sentence and y to be missing (correct) next word
     """
 
-    def __init__(self, dimensions_to_represent_word=100, load_existing = False, processor = None):
+    def __init__(self, dimensions_to_represent_word=100, load_existing = False, processor = None, model_name = ""):
         self.processor = processor
         self.sequence_length = self.processor.sequence_length,
         self.vocab_size = self.processor.vocab_size,        
 
         self.dimensions_to_represent_word = dimensions_to_represent_word
-        self.model_path = f"{pathlib.Path(__file__).parent.resolve()}/_objects/lstm.nextword.model"
+        self.model_name = "lstm.nextword.model" if not model_name else model_name
+        self.model_path = f"{pathlib.Path(__file__).parent.resolve()}/_objects/{self.model_name}"
 
         if load_existing == True:
             try:
                 self._load_model()
-                print("Loading existing model successful!")
+                print(f"Loading existing model (model name = {self.model_name}) successful!")
             except Exception as e:
-                print("Loading existing model failed:\n" + str(e))                
+                print(f"Loading existing model (model name = {self.model_name}) failed:\n" + str(e))                
                 self.model = self.get_model()
         else:
             self.model = self.get_model()
 
     def train(self, X_train, y_train, epochs = 100, batch_size = 128, save = True):
         
-
         # Training may take a few hours without GPUs.
         self.model.fit(X_train, y_train, 
             batch_size = batch_size, 

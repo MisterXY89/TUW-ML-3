@@ -38,10 +38,7 @@ class Process(object):
         df = df.reset_index(drop=True)
         return df
 
-    def tokenize(self, df):
-        """
-        TODO: check  if tokenizer gets overwritten
-        """        
+    def tokenize(self, df):      
 
         if isinstance(df, pd.DataFrame):
             text_data = " ".join(list(df.text))

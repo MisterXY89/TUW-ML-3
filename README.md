@@ -56,7 +56,8 @@ X_train, X_test, y_train, y_test = process.process(force = True)
 # initalize the model
 model = NextWordModel(
     processor=process,
-    load_existing=False
+    load_existing=False,
+    model_name="my_model_name"
 )
 
 # train the model
@@ -64,8 +65,7 @@ model.train(
     X_train, 
     y_train, 
     epochs = 100, 
-    batch_size=128, 
-    model_name="my_model_name"
+    batch_size=128    
 )
 ```
 
