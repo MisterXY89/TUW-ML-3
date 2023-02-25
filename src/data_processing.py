@@ -16,10 +16,11 @@ from sklearn.model_selection import train_test_split
 
 class Process(object):
 
-    def __init__(self, data_loader, test_size = 0.2, sample_factor = 0.8, model_name = ""):
-        self.tok_name = "tokenizer" if not model_name else model_name
+    def __init__(self, data_loader, test_size = 0.2, sample_factor = 0.8, model_name = ""):        
+        self.tok_name = "tokenizer" if not model_name else f"tokenizer.{model_name}"
+        print(self.tok_name)
         self.file_path = pathlib.Path(__file__).parent.resolve()
-        
+
         try:
             with open(f"{self.file_path}/_objects/{self.tok_name}.pkl", "rb") as fi:
                 self.tokenizer = pickle.load(fi)
