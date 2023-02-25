@@ -16,17 +16,19 @@ from sklearn.model_selection import train_test_split
 
 class Process(object):
 
-    def __init__(self, data_loader, test_size = 0.2, sample_factor = 0.8):
+    def __init__(self, data_loader, test_size = 0.2, sample_factor = 0.8, model_name = ""):
+        self.tok_name = "tokenizer" if not model_name else model_name
+        self.file_path = pathlib.Path(__file__).parent.resolve()
+        
         try:
-            with open(f"{self.file_path}/_objects/tokenizer.pkl", "rb") as fi:
+            with open(f"{self.file_path}/_objects/{self.tok_name}.pkl", "rb") as fi:
                 self.tokenizer = pickle.load(fi)
             self.load_tokenizer = True
         except Exception as e:            
             self.tokenizer = Tokenizer()
             self.load_tokenizer = False
 
-        self.data_loader = data_loader
-        self.file_path = pathlib.Path(__file__).parent.resolve()
+        self.data_loader = data_loader        
 
         self.test_size = test_size
         self.sample_factor = sample_factor
@@ -49,7 +51,7 @@ class Process(object):
         self.tokenizer.fit_on_texts([text_data])
 
         if not self.load_tokenizer:
-            with open(f"{self.file_path}/_objects/tokenizer.pkl", "wb") as fi:
+            with open(f"{self.file_path}/_objects/{self.tok_name}.pkl", "wb") as fi:
                 pickle.dump(self.tokenizer, fi)
                 
         token_sequences = self.tokenizer.texts_to_sequences([text_data])[0]
@@ -98,22 +100,7 @@ class Process(object):
         X, y = self._get_Xy(sequences)        
 
         return X, y
-
-    def _df_test_train_split(self, data):
-        data = data.sample(frac = self.sample_factor, random_state = self.random_state)
-
-        test = data.sample(frac = self.test_size, random_state = self.random_state)
-        train = data[~data.index.isin(test.index)]
-
-        return train, test 
     
-    # def _test_train_split(self, X, y):
-    #     data = data.sample(frac = self.sample_factor, random_state = self.random_state)
-
-    #     test = data.sample(frac = self.test_size, random_state = self.random_state)
-    #     train = data[~data.index.isin(test.index)]
-
-    #     return train, test 
 
     def process(self, store=True, force=False, sequence_length=2, random_state=1180):
         self.random_state = random_state
@@ -139,18 +126,4 @@ class Process(object):
             random_state = 1180
         )
 
-        # if store: 
-        #     self.data_loader.store_processed_data(data)
-
         return X_train, X_test, y_train, y_test
-        
-        # {
-        #     "train": {
-        #         "X": X_train,
-        #         "y": y_train
-        #     },
-        #     "test": {
-        #         "X": X_test,
-        #         "y": y_test
-        #     }
-        # }

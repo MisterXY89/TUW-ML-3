@@ -20,10 +20,10 @@ from keras.layers import (
 
 class NextWordModel(object):
     """
-    expects X to be the sentence and y to be missing (correct) next word
+    expects X to be the sentence and y to be missing (correct) next word    
     """
 
-    def __init__(self, dimensions_to_represent_word=100, load_existing = False, processor = None, model_name = ""):
+    def __init__(self, dimensions_to_represent_word=100, load_existing = False, processor = None, model_name = "", optimizer = "adam", loss = "categorical_crossentropy"):
         self.processor = processor
         self.sequence_length = self.processor.sequence_length,
         self.vocab_size = self.processor.vocab_size,        
@@ -38,9 +38,9 @@ class NextWordModel(object):
                 print(f"Loading existing model (model name = {self.model_name}) successful!")
             except Exception as e:
                 print(f"Loading existing model (model name = {self.model_name}) failed:\n" + str(e))                
-                self.model = self.get_model()
+                self.model = self.get_model(optimizer = optimizer, loss = loss)
         else:
-            self.model = self.get_model()
+            self.model = self.get_model(optimizer = optimizer, loss = loss)
 
     def train(self, X_train, y_train, epochs = 100, batch_size = 128, save = True):
         
@@ -57,7 +57,7 @@ class NextWordModel(object):
     def _load_model(self):
         self.model = tf.keras.models.load_model(self.model_path)
 
-    def get_model(self, verbose=True):
+    def get_model(self, verbose=True, loss = 'categorical_crossentropy', optimizer = "adam"):
         model = Sequential()
         print(self.vocab_size)
         model.add(
@@ -83,8 +83,8 @@ class NextWordModel(object):
             print(model.summary())
 
         model.compile(
-            loss='categorical_crossentropy', 
-            optimizer='adam', 
+            loss=loss, 
+            optimizer=optimizer, 
             metrics=['accuracy']
         )
         
