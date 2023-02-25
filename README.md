@@ -4,8 +4,8 @@ This repository contains our (group 50) code to train a LSTM model on the next-w
 All necesarry steps, including preprocesing, training and evlauation are implemented.
 
 ## Requirements & Building
-As this project was implemented on an Apple Device using a M2 chip, we used the **tensorflow-macos** library.
-If you are also a M-chip user you can install all required packages using:
+As this project was implemented on an Apple Device using a M2 chip, using a **Python 3.9.12** virtual environment.
+We used the **tensorflow-macos** library. If you are also a M-chip user you can install all required packages using:
 
 ```pip install -r requirements_mac.txt```
 
@@ -92,7 +92,22 @@ model.train(
 
 or via the comandline using the `train_new_model.py` file:
 ```
-$ python train_new_model.py 
+$ python cli_train_new_model.py <args>
+```
+with the following arguments:
+```
+sample-factor       (sampled) fraction of the data which is used
+batch-size          batch size used in the training process
+epochs              epochs used in the training process
+model-name          used to load the model later on
+evaluate            name of the method you want to use for evaluation (id, lemma, embedding)
+optimizer           name of the TF optimizer
+loss                name of the TF loss-function
+```    
+
+**Example:**
+```
+$ python cli_next_word.py --sample-factor 0.1 --model-name test --evaluate lemma --epochs 10    
 ```
 
 You can then load your new model like this:
