@@ -15,6 +15,11 @@ otherwise use:
 
 Besides this, there are no steps necessary to build/use the project/model.
 
+## Reproduction
+If you want to reproduce the obtained results, simply run the `ml3.ipynb` notebook, which contains the entire flow & generation of visualisations.
+
+**Note: this might take > 15 min.**
+
 ## CLI: Training and Evaluation of a new model
 If you want to train a new model (on the provided data) you can do it like this:
 ```python
@@ -116,9 +121,4 @@ accuracy_lemma = ev.evaluate(X_test, y_test, eval_type="lemma")
 # sentence embedding-based evaluation
 accuracy_lemma = ev.evaluate(X_test, y_test, eval_type="embedding")
 ```
-
-## Reproduction
-If you want to reproduce the obtained results, simply run the `ml3.ipynb` notebook, which contains the entire flow & generation of visualisations.
-
-**Note: this might take > 15 min.**
 
