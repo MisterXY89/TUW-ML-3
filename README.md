@@ -100,7 +100,7 @@ sample-factor       (sampled) fraction of the data which is used
 batch-size          batch size used in the training process
 epochs              epochs used in the training process
 model-name          used to load the model later on
-evaluate            name of the method you want to use for evaluation (id, lemma, embedding)
+evaluate            name of the method you want to use for evaluation (id, lemma, embedding, all)
 optimizer           name of the TF optimizer
 loss                name of the TF loss-function
 ```    

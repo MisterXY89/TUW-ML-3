@@ -20,6 +20,8 @@ class Evaluator(object):
         self.pred = None
         self.sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
 
+        self.eval_types = ["id", "lemma", "embedding"]
+
     def _extract_tokens(self, x):
         # return [*map(lambda y: np.argwhere(y == np.amax(y)).flatten().tolist(), x)]
         return [*map(lambda y: y.argmax(), x)]
@@ -70,9 +72,9 @@ class Evaluator(object):
         return acc       
 
     def evaluate(self, X_test, y_test, eval_type = "id", force = False, threshold = 0.7):
-        eval_types = ["id", "lemma", "embedding"]
+        
 
-        assert eval_type in eval_types, f"available evaluation types include: {eval_types}"            
+        assert eval_type in self.eval_types, f"available evaluation types include: {self.eval_types}"            
 
         if (not force and not self.pred) or force or not self.pred:
             self.pred = w_pred = self._get_preds(X_test)            

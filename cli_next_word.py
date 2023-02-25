@@ -10,8 +10,13 @@ from src.prediction_evaluation import Evaluator
 
 def evaluate_model(model, eval_type, X_test, y_test):
     ev = Evaluator(model)
-    accuracy =  ev.evaluate(X_test, y_test, eval_type=eval_type)    
-    print(f"> Model accuracy is: {accuracy}%")
+    if eval_type == "all":
+        for etype in ev.eval_types:
+            m_acc = ev.evaluate(X_test, y_test, eval_type=etype)
+            print(f"> Model accuracy is: {m_acc}% [{etype}]")
+    else:
+        accuracy = ev.evaluate(X_test, y_test, eval_type=eval_type)
+        print(f"> Model accuracy is: {accuracy}%")
 
 
 def train_model(sample_factor=0.3, model_name="new_model", epochs = 100, batch_size = 128, evaluate="", optimizer="adam", loss="categorical_crossentropy"):
