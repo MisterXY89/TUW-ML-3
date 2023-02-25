@@ -75,7 +75,7 @@ You can then load your new model like this:
 new_model = NextWordModel(
     processor=process,
     load_existing=True,
-    model_name="my_model_name"
+    model_name="test"
 )
 ```
 
