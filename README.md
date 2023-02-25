@@ -69,6 +69,14 @@ model.train(
 )
 ```
 
+You can then load your new model like this:
+```python
+new_model = NextWordModel(
+    processor=process,
+    load_existing=True,
+    model_name="my_model_name"
+)
+```
 
 **Note: Training on all data can result in long training times (> 2h)**
 
