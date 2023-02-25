@@ -58,10 +58,8 @@ class Evaluator(object):
             except Exception as e:
                 preds.append("")
                 errors += 1
-        
-        print("ERRORS: ", errors)
-        self.errors = errors
-        # self.errors = 0
+
+        self.errors = errors        
         return preds
 
 
