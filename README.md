@@ -3,8 +3,7 @@
 This repository contains our (group 50) code to train a LSTM model on the next-word-prediction task. 
 All necesarry steps, including preprocesing, training and evlauation are implemented.
 
-## Requirements
-
+## Requirements & Building
 As this project was implemented on an Apple Device using a M2 chip, we used the **tensorflow-macos** library.
 If you are also a M-chip user you can install all required packages using:
 
@@ -14,11 +13,16 @@ otherwise use:
 
 ```pip install -r requirements_other_os.txt```
 
+Besides this, there are no steps necessary to build/use the project/model.
+
 ## Data & Processing
 As data we used tweets from Donald Trump [https://www.thetrumparchive.com/](https://www.thetrumparchive.com/).
 They are loaded using the `DataLoader()` (`src.data_loading.py`) get preprocessed using the `Process()` class (`src.data_preprocessing.py`).
 
 ```python
+from src.data_loading import DataLoader
+from src.data_processing import Process
+
 dl = DataLoader()
 process = Process(
     dl,
@@ -33,6 +37,10 @@ For the differences betwen them and how they are computed either look in the sou
 
 To evaluate a model on (unseen) data use:
 ```python
+from src.prediction_evaluation import Evaluator
+
+ev = Evaluator(model)
+
 # identical word evaluation
 accuracy_id =  ev.evaluate(X_test, y_test, eval_type="id")
 
@@ -47,9 +55,22 @@ accuracy_lemma = ev.evaluate(X_test, y_test, eval_type="embedding")
 If you want to reproduce the obtained results, simply run the `ml3.ipynb` notebook, which contains the entire flow & generation of visualisations.
 
 
-## New Training
-If you want to train a new model (on the provided data) you can either do it with python like this:
+## Training of a new model
+If you want to train a new model (on the provided data) you can do it like this:
 ```python
+from src.data_loading import DataLoader
+from src.data_processing import Process
+
+from src.next_word_model import NextWordModel
+
+from src.prediction_evaluation import Evaluator
+
+dl = DataLoader()
+process = Process(
+    dl,
+    sample_factor = 0.95
+)
+
 # obtain the test and train data
 X_train, X_test, y_train, y_test = process.process(force = True)
 
@@ -67,6 +88,11 @@ model.train(
     epochs = 100, 
     batch_size=128    
 )
+```
+
+or via the comandline using the `train_new_model.py` file:
+```
+$ python train_new_model.py 
 ```
 
 You can then load your new model like this:
