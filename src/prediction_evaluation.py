@@ -45,10 +45,8 @@ class Evaluator(object):
         ]
 
     def _get_preds(self, X_test):       
-        # print(X_test) 
         test_words = self._get_words(
-            X_test
-            # self._extract_tokens(X_test)
+            X_test            
         )
 
         errors = 0
@@ -71,8 +69,7 @@ class Evaluator(object):
         acc = round((sum(pred_eval)/(len(pred_eval))) * 100, 2)
         if report:          
             print(f"Accuracy: {acc}%")
-        return acc
-        
+        return acc       
 
     def evaluate(self, X_test, y_test, eval_type = "id", force = False, threshold = 0.7):
         eval_types = ["id", "lemma", "embedding"]
