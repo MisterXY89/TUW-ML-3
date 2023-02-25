@@ -54,6 +54,8 @@ accuracy_lemma = ev.evaluate(X_test, y_test, eval_type="embedding")
 ## Reproduction
 If you want to reproduce the obtained results, simply run the `ml3.ipynb` notebook, which contains the entire flow & generation of visualisations.
 
+**Note: this might take > 15 min.**
+
 
 ## Training of a new model
 If you want to train a new model (on the provided data) you can do it like this:
